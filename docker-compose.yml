@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: timescale/timescaledb:latest-pg15
+    container_name: lunar-crime-postgres
+    environment:
+      POSTGRES_DB: lunar_crime_db
+      POSTGRES_USER: lunar_user
+      POSTGRES_PASSWORD: lunar_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - lunar-crime-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: lunar-crime-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - lunar-crime-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: lunar-crime-backend
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://lunar_user:lunar_password@postgres:5432/lunar_crime_db
+      REDIS_URL: redis://redis:6379
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - lunar-crime-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: lunar-crime-frontend
+    environment:
+      VITE_API_URL: http://localhost:3001
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - lunar-crime-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  lunar-crime-network:
+    driver: bridge
