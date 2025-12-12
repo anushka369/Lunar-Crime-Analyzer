@@ -54,7 +54,7 @@ const Dashboard: React.FC = () => {
   } = useMoonPhases(dataFetchParams, !!selectedLocation);
 
   const {
-    data: = [],
+    data: crimeData = [],
     isLoading: isLoadingCrimeData,
     error: crimeDataError,
   } = useCrimeData(dataFetchParams, !!selectedLocation);

@@ -157,6 +157,7 @@ const ExportControls: React.FC<ExportControlsProps> = ({
             </Typography>
             <ButtonGroup variant="outlined" sx={{ mb: 1 }}>
               <Button
+                data-testid="export-png-button"
                 startIcon={<Image />}
                 onClick={() => handleExport('png')}
                 disabled={isExporting}
@@ -164,6 +165,7 @@ const ExportControls: React.FC<ExportControlsProps> = ({
                 PNG Image
               </Button>
               <Button
+                data-testid="export-pdf-button"
                 startIcon={<PictureAsPdf />}
                 onClick={() => handleExport('pdf')}
                 disabled={isExporting}
@@ -171,6 +173,7 @@ const ExportControls: React.FC<ExportControlsProps> = ({
                 PDF Report
               </Button>
               <Button
+                data-testid="export-csv-button"
                 startIcon={<TableChart />}
                 onClick={() => handleExport('csv')}
                 disabled={isExporting}
@@ -204,6 +207,7 @@ const ExportControls: React.FC<ExportControlsProps> = ({
               Share Analysis
             </Typography>
             <Button
+              data-testid="create-share-link-button"
               variant="contained"
               startIcon={isSharing ? <CircularProgress size={16} /> : <Share />}
               onClick={handleShare}

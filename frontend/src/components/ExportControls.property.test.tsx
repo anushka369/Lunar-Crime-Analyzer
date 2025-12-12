@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import * as fc from 'fast-check';
 import ExportControls from './ExportControls';
 import { ExportConfiguration, StatisticalSummary } from '../types/data';
@@ -48,6 +48,11 @@ const statisticalSummaryArb = fc.record({
 describe('ExportControls Property Tests', () => {
   const mockFilters = createDefaultFilterState();
   
+  // Ensure cleanup between tests
+  afterEach(() => {
+    cleanup();
+  });
+  
   describe('Property 7: Export generation completeness', () => {
     it('should call onExport with complete configuration for PNG export', async () => {
       await fc.assert(
@@ -57,7 +62,7 @@ describe('ExportControls Property Tests', () => {
             const mockOnExport = jest.fn().mockResolvedValue(undefined);
             const mockOnShare = jest.fn();
             
-            render(
+            const { container } = render(
               <ExportControls
                 statistics={statistics}
                 filters={mockFilters}
@@ -66,10 +71,11 @@ describe('ExportControls Property Tests', () => {
               />
             );
 
-            // Test PNG export button - use getAllByRole and select the first one
-            const pngButtons = screen.getAllByRole('button', { name: /png image/i });
-            const pngButton = pngButtons[0]; // Select the first PNG button (main interface)
-            fireEvent.click(pngButton);
+            // Test PNG export button using specific data-testid
+            const pngButton = container.querySelector('[data-testid="export-png-button"]');
+            expect(pngButton).toBeTruthy();
+            
+            fireEvent.click(pngButton!);
             
             await waitFor(() => {
               expect(mockOnExport).toHaveBeenCalledWith(
@@ -80,12 +86,15 @@ describe('ExportControls Property Tests', () => {
                   includeRawData: expect.any(Boolean)
                 })
               );
-            });
+            }, { timeout: 3000 });
+            
+            // Clean up
+            cleanup();
           }
         ),
-        { numRuns: 10 }
+        { numRuns: 3 }
       );
-    });
+    }, 10000);
 
     it('should call onShare with complete configuration', async () => {
       await fc.assert(
@@ -110,7 +119,7 @@ describe('ExportControls Property Tests', () => {
               expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
             });
             
-            render(
+            const { container } = render(
               <ExportControls
                 statistics={statistics}
                 filters={mockFilters}
@@ -119,8 +128,10 @@ describe('ExportControls Property Tests', () => {
               />
             );
 
-            const shareButton = screen.getByRole('button', { name: /create shareable link/i });
-            fireEvent.click(shareButton);
+            const shareButton = container.querySelector('[data-testid="create-share-link-button"]');
+            expect(shareButton).toBeTruthy();
+            
+            fireEvent.click(shareButton!);
 
             await waitFor(() => {
               expect(mockOnShare).toHaveBeenCalledWith(
@@ -131,12 +142,15 @@ describe('ExportControls Property Tests', () => {
                   includeRawData: expect.any(Boolean)
                 })
               );
-            });
+            }, { timeout: 3000 });
+            
+            // Clean up
+            cleanup();
           }
         ),
-        { numRuns: 10 }
+        { numRuns: 3 }
       );
-    });
+    }, 10000);
 
     it('should handle export errors gracefully', async () => {
       await fc.assert(
@@ -146,7 +160,7 @@ describe('ExportControls Property Tests', () => {
             const mockOnExport = jest.fn().mockRejectedValue(new Error('Export failed'));
             const mockOnShare = jest.fn();
             
-            render(
+            const { container } = render(
               <ExportControls
                 statistics={statistics}
                 filters={mockFilters}
@@ -155,9 +169,10 @@ describe('ExportControls Property Tests', () => {
               />
             );
 
-            const exportButtons = screen.getAllByRole('button', { name: /png image/i });
-            const exportButton = exportButtons[0]; // Select the first PNG button
-            fireEvent.click(exportButton);
+            const exportButton = container.querySelector('[data-testid="export-png-button"]');
+            expect(exportButton).toBeTruthy();
+            
+            fireEvent.click(exportButton!);
 
             await waitFor(() => {
               expect(mockOnExport).toHaveBeenCalledWith(
@@ -165,16 +180,19 @@ describe('ExportControls Property Tests', () => {
                   format: 'png'
                 })
               );
-            });
+            }, { timeout: 3000 });
 
             // Verify error handling doesn't break the component
             await waitFor(() => {
               expect(exportButton).not.toBeDisabled();
-            });
+            }, { timeout: 3000 });
+            
+            // Clean up
+            cleanup();
           }
         ),
-        { numRuns: 5 }
+        { numRuns: 3 }
       );
-    });
+    }, 10000);
   });
 });

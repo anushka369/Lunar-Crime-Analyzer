@@ -325,11 +325,25 @@ describe('API Integration Tests', () => {
 
     describe('GET /api/shared/:id', () => {
       it('should retrieve shared analysis', async () => {
-        const response = await request(app)
-          .get('/api/shared/test-id')
+        // First create a shared analysis
+        const createResponse = await request(app)
+          .post('/api/shared')
+          .send({
+            format: 'png',
+            includeCharts: true,
+            includeStatistics: true,
+            includeRawData: false,
+          })
           .expect(200);
 
-        expect(response.body).toHaveProperty('id', 'test-id');
+        const shareId = createResponse.body.id;
+
+        // Then retrieve it
+        const response = await request(app)
+          .get(`/api/shared/${shareId}`)
+          .expect(200);
+
+        expect(response.body).toHaveProperty('id', shareId);
         expect(response.body).toHaveProperty('location');
         expect(response.body).toHaveProperty('dateRange');
         expect(response.body).toHaveProperty('filters');

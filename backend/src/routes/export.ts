@@ -3,6 +3,9 @@ import { ExportConfiguration, ShareableAnalysis } from '../types';
 
 const router = express.Router();
 
+// In-memory storage for shared analyses (in production, this would be a database)
+const sharedAnalysesStore = new Map<string, ShareableAnalysis>();
+
 // POST /api/export - Export analysis data
 router.post('/export', (req, res) => {
   try {
@@ -49,7 +52,7 @@ router.post('/shared', (req, res) => {
     // Generate a unique share ID
     const shareId = Math.random().toString(36).substr(2, 9);
     
-    // Mock shared analysis data
+    // Create shared analysis data
     const sharedAnalysis: ShareableAnalysis = {
       id: shareId,
       location: 'New York City, NY', // This would come from the request
@@ -63,8 +66,8 @@ router.post('/shared', (req, res) => {
       expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
     };
     
-    // In a real implementation, this would be stored in a database
-    // For now, we'll just return the mock data
+    // Store in memory (in production, this would be stored in a database)
+    sharedAnalysesStore.set(shareId, sharedAnalysis);
     
     return res.json(sharedAnalysis);
   } catch (error) {
@@ -78,27 +81,17 @@ router.get('/shared/:id', (req, res) => {
   try {
     const { id } = req.params;
     
-    // Mock retrieval - in real implementation, this would query a database
-    const sharedAnalysis: ShareableAnalysis = {
-      id,
-      location: 'New York City, NY',
-      dateRange: {
-        start: new Date('2023-01-01'),
-        end: new Date('2023-12-31'),
-      },
-      filters: {},
-      exportConfig: {
-        format: 'png',
-        includeCharts: true,
-        includeStatistics: true,
-        includeRawData: false,
-      },
-      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
-      expiresAt: new Date(Date.now() + 23 * 24 * 60 * 60 * 1000), // 23 days from now
-    };
+    // Retrieve from memory storage (in production, this would query a database)
+    const sharedAnalysis = sharedAnalysesStore.get(id);
+    
+    if (!sharedAnalysis) {
+      return res.status(404).json({ error: 'Shared analysis not found' });
+    }
     
     // Check if the shared analysis has expired
     if (sharedAnalysis.expiresAt && sharedAnalysis.expiresAt < new Date()) {
+      // Remove expired analysis from storage
+      sharedAnalysesStore.delete(id);
       return res.status(404).json({ error: 'Shared analysis has expired' });
     }
     

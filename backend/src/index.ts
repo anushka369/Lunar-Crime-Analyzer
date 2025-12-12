@@ -68,10 +68,13 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-httpServer.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV}`);
-  console.log(`WebSocket server initialized`);
-});
+// Only start server if this file is run directly (not imported for testing)
+if (require.main === module) {
+  httpServer.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV}`);
+    console.log(`WebSocket server initialized`);
+  });
+}
 
 export default app;

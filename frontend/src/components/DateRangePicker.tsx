@@ -7,6 +7,7 @@ import {
   Alert,
   FormControl,
   InputLabel,
+  TextField,
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -77,8 +78,8 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
     setCustomMode(true);
   };
 
-  const handleStartDateChange = (date: Date | null) => {
-    if (date) {
+  const handleStartDateChange = (date: unknown) => {
+    if (date && date instanceof Date) {
       const newStart = startOfDay(date);
       // Ensure start date is not after end date
       const newEnd = newStart > value.end ? endOfDay(date) : value.end;
@@ -86,8 +87,8 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
     }
   };
 
-  const handleEndDateChange = (date: Date | null) => {
-    if (date) {
+  const handleEndDateChange = (date: unknown) => {
+    if (date && date instanceof Date) {
       const newEnd = endOfDay(date);
       // Ensure end date is not before start date
       const newStart = newEnd < value.start ? startOfDay(date) : value.start;
@@ -177,12 +178,14 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
                   disabled={disabled}
                   minDate={minDate}
                   maxDate={value.end}
-                  slotProps={{
-                    textField: {
-                      variant: 'outlined',
-                      size: 'small',
-                    },
-                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      variant="outlined"
+                      size="small"
+                      fullWidth
+                    />
+                  )}
                 />
               </FormControl>
 
@@ -194,12 +197,14 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
                   disabled={disabled}
                   minDate={value.start}
                   maxDate={maxDate}
-                  slotProps={{
-                    textField: {
-                      variant: 'outlined',
-                      size: 'small',
-                    },
-                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      variant="outlined"
+                      size="small"
+                      fullWidth
+                    />
+                  )}
                 />
               </FormControl>
             </Box>
